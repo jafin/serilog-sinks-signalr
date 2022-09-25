@@ -46,6 +46,6 @@ jobs:
     - name: Prep package
       run: dotnet nuget add source --username jafin --password ${{secrets.GITHUB_TOKEN}} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/jafin/index.json"
 
+    # wildcard *.nupkg wasn't working.
     - name: Publish to Github packages
-      run: dotnet nuget push ${{env.SOLUTION_FILE_PATH}}/src/Serilog.Sinks.SignalR/bin/Release/*.nupkg --api-key ${{secrets.GITHUB_TOKEN}} --source "github"
-      
+      run: dotnet nuget push ${{env.SOLUTION_FILE_PATH}}/src/Serilog.Sinks.SignalR/bin/Release/Serilog.Sinks.SignalR.3.0.0.nupkg --api-key ${{secrets.GITHUB_TOKEN}} --source "github"
