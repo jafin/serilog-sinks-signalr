@@ -37,3 +37,8 @@ jobs:
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}} -t:pack
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: nuget
+        path: ${{env.SOLUTION_FILE_PATH}}/src/Serilog.Sinks.SignalR/bin/Release/*.nupkg
