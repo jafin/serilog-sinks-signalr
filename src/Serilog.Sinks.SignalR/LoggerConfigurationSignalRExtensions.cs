@@ -2,6 +2,7 @@
 using Microsoft.AspNet.SignalR;
 using Serilog.Configuration;
 using Serilog.Events;
+using Serilog.Sinks.PeriodicBatching;
 using Serilog.Sinks.SignalR;
 
 // Copyright 2014 Serilog Contributors
@@ -54,9 +55,19 @@ namespace Serilog
             if (context == null) throw new ArgumentNullException(nameof(context));
 
             var defaultedPeriod = period ?? SignalRSink.DefaultPeriod;
-            return loggerConfiguration.Sink(
-                new SignalRSink(context, batchPostingLimit, defaultedPeriod, formatProvider, groupNames, userIds, excludedConnectionIds),
-                restrictedToMinimumLevel);
+            var signalRSink = new SignalRSink(context, batchPostingLimit, defaultedPeriod, formatProvider,
+                groupNames, userIds,
+                excludedConnectionIds);
+            var batchingOptions = new PeriodicBatchingSinkOptions
+            {
+                BatchSizeLimit = batchPostingLimit,
+                Period = defaultedPeriod,
+                EagerlyEmitFirstEvent = true,
+                QueueLimit = 10000
+            };
+            var batchingSink = new PeriodicBatchingSink(signalRSink, batchingOptions);
+
+            return loggerConfiguration.Sink(batchingSink, restrictedToMinimumLevel);
         }
 
         /// <summary>
@@ -88,9 +99,18 @@ namespace Serilog
             if (url == null) throw new ArgumentNullException(nameof(url));
 
             var defaultedPeriod = period ?? SignalRSink.DefaultPeriod;
-            return loggerConfiguration.Sink(
-                new SignalRClientSink(url, batchPostingLimit, defaultedPeriod, formatProvider, hub, groupNames, userIds),
-                restrictedToMinimumLevel);
+            var signalRClientSink = new SignalRClientSink(url, formatProvider, hub, groupNames, userIds);
+            var batchingOptions = new PeriodicBatchingSinkOptions
+            {
+                BatchSizeLimit = batchPostingLimit,
+                Period = defaultedPeriod,
+                EagerlyEmitFirstEvent = true,
+                QueueLimit = 10000
+            };
+
+            var batchingSink = new PeriodicBatchingSink(signalRClientSink, batchingOptions);
+            loggerConfiguration.Sink(batchingSink);
+            return loggerConfiguration.Sink(batchingSink, restrictedToMinimumLevel);
         }
     }
 }

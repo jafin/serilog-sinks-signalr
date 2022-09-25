@@ -14,6 +14,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNet.SignalR;
 using Serilog.Sinks.PeriodicBatching;
 using LogEvent = Serilog.Sinks.SignalR.Data.LogEvent;
@@ -23,7 +24,7 @@ namespace Serilog.Sinks.SignalR
     /// <summary>
     /// Writes log events as messages to a SignalR hub.
     /// </summary>
-    public class SignalRSink : PeriodicBatchingSink
+    public class SignalRSink : IBatchedLogEventSink
     {
         readonly IFormatProvider _formatProvider;
         readonly IHubContext _context;
@@ -53,12 +54,9 @@ namespace Serilog.Sinks.SignalR
         /// <param name="userIds">ID's of the Signalr Users you are broadcasting the log event to. Default is All Users.</param>
         /// <param name="excludedConnectionIds">Signalr connection ID's to exclude from broadcast.</param>
         public SignalRSink(IHubContext context, int batchPostingLimit, TimeSpan period, IFormatProvider formatProvider, string[] groupNames = null, string[] userIds = null, string[] excludedConnectionIds = null)
-            : base(batchPostingLimit, period)
         {
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
             _formatProvider = formatProvider;
-            _context = context;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
             _groupNames = groupNames;
             _userIds = userIds;
             _excludedConnectionIds = excludedConnectionIds ?? Array.Empty<string>();
@@ -68,9 +66,7 @@ namespace Serilog.Sinks.SignalR
         /// Emit a batch of log events, running asynchronously.
         /// </summary>
         /// <param name="events">The events to emit.</param>
-        /// <remarks>Override either <see cref="PeriodicBatchingSink.EmitBatch"/> or <see cref="PeriodicBatchingSink.EmitBatchAsync"/>,
-        /// not both.</remarks>
-        protected override void EmitBatch(IEnumerable<Events.LogEvent> events)
+        public Task EmitBatchAsync(IEnumerable<Events.LogEvent> events)
         {
             // This sink doesn't use batching to send events, instead only using
             // PeriodicBatchingSink to manage the worker thread; requires some consideration.
@@ -89,6 +85,17 @@ namespace Serilog.Sinks.SignalR
                 // send the broadcast to the targeted connections
                 target.sendLogEvent(new LogEvent(logEvent, logEvent.RenderMessage(_formatProvider)));
             }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Dispose of resources held by the sink.
+        /// </summary>
+        /// <returns></returns>
+        public Task OnEmptyBatchAsync()
+        {
+            return Task.FromResult(0);
         }
     }
 }
