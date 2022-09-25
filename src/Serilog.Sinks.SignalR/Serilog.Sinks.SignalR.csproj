@@ -4,9 +4,12 @@
   <PropertyGroup>
     <PackageId>Serilog.Sinks.SignalR</PackageId>
     <Version>3.0.0</Version>
+    <PackageVersion>3.0.0</PackageVersion>
     <Authors>Jason</Authors>
     <Company>None</Company>
     <Description>Sinks for SignalR</Description>
+    <RepositoryUrl>https://github.com/jafin/serilog-sinks-signalr</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
