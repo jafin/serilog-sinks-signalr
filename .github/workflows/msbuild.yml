@@ -42,3 +42,10 @@ jobs:
       with:
         name: nuget
         path: ${{env.SOLUTION_FILE_PATH}}/src/Serilog.Sinks.SignalR/bin/Release/*.nupkg
+
+    - name: Prep package
+      run: dotnet nuget add source --username jafin --password ${{secrets.GITHUB_TOKEN}} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/jafin/index.json"
+
+    - name: Publish to Github packages
+      run: dotnet nuget push ${{env.SOLUTION_FILE_PATH}}/src/Serilog.Sinks.SignalR/bin/Release/*.nupkg --api-key ${{secrets.GITHUB_TOKEN}} --source "github"
+      
